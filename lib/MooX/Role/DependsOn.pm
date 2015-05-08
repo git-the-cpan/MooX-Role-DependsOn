@@ -1,5 +1,5 @@
 package MooX::Role::DependsOn;
-$MooX::Role::DependsOn::VERSION = '0.002002';
+$MooX::Role::DependsOn::VERSION = '0.002003';
 use strictures 2;
 no warnings 'recursion';
 
@@ -10,7 +10,6 @@ use List::Objects::WithUtils 2;
 use List::Objects::Types -all;
 
 use Types::Standard -types;
-use Types::TypeTiny ();
 
 
 use Moo::Role;
@@ -27,22 +26,16 @@ has __depends_on => (
   isa     => TypedArray[ ConsumerOf['MooX::Role::DependsOn'] ],
   coerce  => 1,
   default => sub { array_of ConsumerOf['MooX::Role::DependsOn'] },
+  handles => +{
+    clear_dependencies => 'clear',
+    has_dependencies   => 'has_any',
+  },
 );
 
 sub depends_on {
   my ($self, @nodes) = @_;
   return @{ $self->__depends_on } unless @nodes;
   $self->__depends_on->push(@nodes)
-}
-
-sub clear_dependencies {
-  my ($self) = @_;
-  $self->__depends_on->clear
-}
-
-sub has_dependencies {
-  my ($self) = @_;
-  $self->__depends_on->has_any
 }
 
 sub __resolve_deps {
@@ -201,11 +194,11 @@ Defaults to the stringified value of C<$self>.
 =head3 depends_on
 
 If passed no arguments, returns the current direct dependencies of the object
-as a list.
+as an unordered list.
 
 If passed objects that are L<MooX::Role::DependsOn> consumers (or used as an
-attribute during object construction), the objects are pushed to the current
-dependency list.
+attribute with an ARRAY-type value during object construction), the objects
+are pushed to the current dependency list.
 
 =head3 clear_dependencies
 
@@ -233,11 +226,12 @@ be invoked against the root object we started with:
   );
 
 The C<$state> object passed in is a simple struct-like object providing access
-to the current resolution state. This consists of a set of lists (represented
-as hashes for performance reasons).
+to the current resolution state. This consists primarily of a set of lists
+(represented as hashes for performance reasons).
 
 (These are references to the actual in-use state; it's possible to do scary
-things to the tree from here . . .)
+things to the tree from here -- in which case it is presumed that you have read
+and understand the source code.)
 
 The object provides the following accessors:
 
@@ -259,7 +253,8 @@ L</dependency_tag>.
 
 =item skip_hash
 
-The list of nodes to skip, as a HASH keyed on L</dependency_tag>.
+The list of nodes to skip (because they have already been seen), as a HASH
+keyed on L</dependency_tag>.
 
 =back
 
