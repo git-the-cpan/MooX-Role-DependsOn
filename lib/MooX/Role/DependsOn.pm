@@ -1,12 +1,12 @@
 package MooX::Role::DependsOn;
-$MooX::Role::DependsOn::VERSION = '0.002003';
+$MooX::Role::DependsOn::VERSION = '0.002004';
 use strictures 2;
 no warnings 'recursion';
 
 use Carp;
 use Scalar::Util 'blessed', 'reftype';
 
-use List::Objects::WithUtils 2;
+use List::Objects::WithUtils;
 use List::Objects::Types -all;
 
 use Types::Standard -types;
@@ -244,7 +244,8 @@ The node we are currently processing.
 =item resolved_array
 
 The ordered list of successfully resolved nodes, as an ARRAY of the original
-objects.
+objects; this is the ARRAY used to produce the final list produced by
+L</dependency_schedule>.
 
 =item unresolved_hash
 
